@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>SehatLansia - Cek Tekanan Darah</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a3a4a;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* ========== NAVIGASI SEDERHANA ========== */
+        .navbar {
+            background: #0d2b3b;
+            display: flex;
+            justify-content: space-around;
+            padding: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-btn {
+            flex: 1;
+            text-align: center;
+            padding: 18px 5px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            background: #0d2b3b;
+            color: #bbdef5;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 4px solid transparent;
+        }
+
+        .nav-btn.active {
+            background: #1e5a6e;
+            color: white;
+            border-bottom: 4px solid #ffb74d;
+        }
+
+        .nav-btn:active {
+            background: #2a7f6e;
+            transform: scale(0.97);
+        }
+
+        /* ========== KONTEN HALAMAN ========== */
+        .page {
+            display: none;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .page.active-page {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ========== KOMPONEN UMUM (BESAR & JELAS) ========== */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 40px;
+            padding: 20px 25px 30px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2rem;
+            color: #1e3c5c;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            font-size: 1.7rem;
+            color: #1e5a6e;
+            margin-bottom: 15px;
+            border-left: 8px solid #ffb74d;
+            padding-left: 15px;
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            margin: 10px 0;
+        }
+
+        .card {
+            background: #eef4fc;
+            border-radius: 32px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #0a2f44;
+            margin-bottom: 10px;
+        }
+
+        input {
+            width: 100%;
+            padding: 18px 20px;
+            font-size: 1.8rem;
+            text-align: center;
+            border: 3px solid #c0d9f0;
+            border-radius: 60px;
+            background: white;
+            font-weight: bold;
+            color: #1e4663;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #ffb74d;
+            background: #fffef7;
+        }
+
+        /* TOMBOL BESAR - RAMAH MOTORIK */
+        button, .btn-besar {
+            width: 100%;
+            padding: 20px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 60px;
+            background: #2a7f6e;
+            color: white;
+            margin-top: 10px;
+            cursor: pointer;
+            transition: 0.1s linear;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        button:active, .btn-besar:active {
+            transform: scale(0.97);
+            background: #1e5f52;
+        }
+
+        .btn-danger {
+            background: #c26a5c;
+        }
+
+        .btn-danger:active {
+            background: #a14e40;
+        }
+
+        /* HASIL CEK - KONTRAST TINGGI */
+        .hasil-area {
+            background: #fef7e0;
+            border-radius: 32px;
+            padding: 20px;
+            margin: 15px 0;
+            text-align: center;
+            border: 2px solid #ffd966;
+        }
+
+        .nilai-tekanan {
+            font-size: 2.4rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .status {
+            font-size: 2rem;
+            font-weight: bold;
+            padding: 15px;
+            border-radius: 50px;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .status-normal {
+            background: #c8e6d9;
+            color: #1a5a3a;
+            border: 2px solid #2e7d64;
+        }
+
+        .status-tinggi {
+            background: #ffded5;
+            color: #b13e3e;
+            border: 2px solid #c75c5c;
+        }
+
+        .status-rendah {
+            background: #ffe1b9;
+            color: #aa6f20;
+            border: 2px solid #d99938;
+        }
+
+        /* RIWAYAT */
+        .riwayat-list {
+            max-height: 350px;
+            overflow-y: auto;
+            font-size: 1.2rem;
+        }
+
+        .riwayat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 30px;
+            margin-bottom: 12px;
+            border-left: 12px solid #ffb74d;
+            font-weight: bold;
+        }
+
+        /* INFO PENGGUNAAN SEDERHANA */
+        .info-card {
+            background: #d9eaf5;
+            padding: 20px;
+            border-radius: 32px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .info-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        /* PANDUAN */
+        .panduan-step {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 12px 18px;
+            border-radius: 50px;
+        }
+
+        .step-number {
+            background: #ffb74d;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #1e3c5c;
+        }
+
+        footer {
+            font-size: 0.9rem;
+            text-align: center;
+            margin-top: 20px;
+            color: #6688aa;
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAVIGASI SEDERHANA (3 TOMBOL BESAR) -->
+<div class="navbar">
+    <button class="nav-btn" data-page="home">🏠 BERANDA</button>
+    <button class="nav-btn active" data-page="cek">🩺 CEK TD</button>
+    <button class="nav-btn" data-page="riwayat">📋 RIWAYAT</button>
+</div>
+
+<!-- HALAMAN 1: BERANDA -->
+<div id="homePage" class="page">
+    <div class="container">
+        <h1>❤️ SehatLansia</h1>
+        <div class="info-card">
+            <div class="info-icon">👵👴</div>
+            <h3>Aplikasi untuk Lansia</h3>
+            <p style="font-size:1.2rem;">Desain khusus: 🔤 huruf besar, 🎨 kontras tinggi, 🔘 tombol gede</p>
+        </div>
+
+        <h2>📌 Cara Pakai</h2>
+        <div class="panduan-step">
+            <div class="step-number">1</div>
+            <div style="font-size:1.2rem;">Tekan menu <strong>CEK TD</strong></div>
+        </div>
+        <div class="panduan-step">
+            <div class="step-number">2</div>
+            <div style="font-size:1.2rem;">Masukkan angka tekanan darah & detak jantung</div>
+        </div>
+        <div class="panduan-step">
+            <div class="step-number">3</div>
+            <div style="font-size:1.2rem;">Tekan tombol <strong>SIMPAN & CEK</strong></div>
+        </div>
+        <div class="panduan-step">
+            <div class="step-number">4</div>
+            <div style="font-size:1.2rem;">Lihat hasil (Normal/Tinggi/Rendah) & riwayat</div>
+        </div>
+
+        <div class="info-card" style="background:#ffe0b5;">
+            <span style="font-size:1.8rem;">💡</span>
+            <p style="font-size:1.2rem; font-weight:bold;">Jika salah tekan, tekan tombol lagi dengan pelan. Aplikasi tidak akan rusak.</p>
+        </div>
+        <footer>Tekan tombol besar • Data tersimpan otomatis</footer>
+    </div>
+</div>
+
+<!-- HALAMAN 2: CEK TEKANAN DARAH -->
+<div id="cekPage" class="page active-page">
+    <div class="container">
+        <h1>🩸 Cek Tekanan Darah</h1>
+        
+        <div class="card">
+            <div class="input-group">
+                <label>💓 Tekanan Sistolik <span style="font-size:1rem;">(angka atas)</span></label>
+                <input type="number" id="sistolik" placeholder="contoh: 120" value="120" step="1">
+            </div>
+            <div class="input-group">
+                <label>🩸 Tekanan Diastolik <span style="font-size:1rem;">(angka bawah)</span></label>
+                <input type="number" id="diastolik" placeholder="contoh: 80" value="80" step="1">
+            </div>
+            <div class="input-group">
+                <label>💗 Detak Jantung <span style="font-size:1rem;">(per menit)</span></label>
+                <input type="number" id="heartRate" placeholder="60-100" value="75" step="1">
+            </div>
+
+            <button id="simpanBtn">📋 SIMPAN & CEK HASIL</button>
+        </div>
+
+        <div class="hasil-area" id="hasilArea">
+            <div class="nilai-tekanan" id="tampilNilai">-- / -- mmHg</div>
+            <div class="status" id="tampilStatus">Belum dicek</div>
+            <div id="tampilDetak" style="font-size:1.4rem; margin-top:10px;">❤️ Detak: -- bpm</div>
+        </div>
+        <footer>Tekan tombol hijau besar untuk menyimpan</footer>
+    </div>
+</div>
+
+<!-- HALAMAN 3: RIWAYAT -->
+<div id="riwayatPage" class="page">
+    <div class="container">
+        <h1>📜 Riwayat Pengecekan</h1>
+        <div class="riwayat-list" id="riwayatList">
+            <p style="text-align:center; color:gray;">Belum ada data</p>
+        </div>
+        <button id="hapusRiwayatBtn" class="btn-danger">🗑️ HAPUS SEMUA RIWAYAT</button>
+        <footer>Riwayat tersimpan otomatis di HP</footer>
+    </div>
+</div>
+
+<script>
+    // ========== DATA RIWAYAT ==========
+    let riwayat = [];
+
+    // Load dari localStorage
+    function loadRiwayat() {
+        const saved = localStorage.getItem("tekananDarahRiwayat");
+        if (saved) {
+            try {
+                riwayat = JSON.parse(saved);
+            } catch(e) { riwayat = []; }
+        } else {
+            riwayat = [];
+        }
+        tampilkanRiwayat();
+    }
+
+    function simpanRiwayatKeStorage() {
+        localStorage.setItem("tekananDarahRiwayat", JSON.stringify(riwayat));
+    }
+
+    // Klasifikasi tekanan darah
+    function klasifikasiTD(sistol, diastol) {
+        if (sistol < 90 || diastol < 60) return "rendah";
+        if (sistol >= 140 || diastol >= 90) return "tinggi";
+        return "normal";
+    }
+
+    function teksStatus(klasifikasi) {
+        if (klasifikasi === "normal") return "✅ NORMAL (Sehat)";
+        if (klasifikasi === "tinggi") return "⚠️ TINGGI - Konsultasi ke Dokter";
+        return "🟠 RENDAH - Perbanyak minum & istirahat";
+    }
+
+    // Tambah data baru
+    function tambahData(sistol, diastol, heart) {
+        const klas = klasifikasiTD(sistol, diastol);
+        const now = new Date();
+        const tanggal = `${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+        
+        const newEntry = {
+            id: Date.now(),
+            tanggal: tanggal,
+            sistol: sistol,
+            diastol: diastol,
+            heartRate: heart,
+            klasifikasi: klas,
+            teksKlas: teksStatus(klas)
+        };
+        riwayat.unshift(newEntry);
+        if (riwayat.length > 15) riwayat.pop();
+        
+        simpanRiwayatKeStorage();
+        tampilkanRiwayat();
+        
+        // Tampilkan hasil di halaman cek
+        const hasilKlas = teksStatus(klas);
+        document.getElementById("tampilNilai").innerHTML = `${sistol} / ${diastol} mmHg`;
+        document.getElementById("tampilStatus").innerHTML = hasilKlas;
+        
+        let statusClass = "status ";
+        if (klas === "normal") statusClass += "status-normal";
+        else if (klas === "tinggi") statusClass += "status-tinggi";
+        else statusClass += "status-rendah";
+        document.getElementById("tampilStatus").className = statusClass;
+        document.getElementById("tampilDetak").innerHTML = `❤️ Detak Jantung: ${heart} bpm`;
+        
+        // Kasih umpan balik sentuhan
+        const btn = document.getElementById("simpanBtn");
+        btn.style.transform = "scale(0.98)";
+        setTimeout(() => { btn.style.transform = ""; }, 120);
+    }
+
+    // Tampilkan riwayat di halaman riwayat
+    function tampilkanRiwayat() {
+        const listContainer = document.getElementById("riwayatList");
+        if (!riwayat.length) {
+            listContainer.innerHTML = '<p style="text-align:center; color:gray;">✨ Belum ada pengecekan, silakan cek tekanan darah dulu</p>';
+            return;
+        }
+        
+        let html = '';
+        for (let i=0; i<riwayat.length; i++) {
+            const r = riwayat[i];
+            let warnaBg = '';
+            if (r.klasifikasi === 'normal') warnaBg = '#c8e6d9';
+            else if (r.klasifikasi === 'tinggi') warnaBg = '#ffded5';
+            else warnaBg = '#ffe1b9';
+            
+            html += `
+                <div class="riwayat-item" style="background:${warnaBg};">
+                    <div><strong>📅 ${r.tanggal}</strong></div>
+                    <div style="font-size:1.3rem;">🩸 ${r.sistol}/${r.diastol} mmHg &nbsp;| 💓 ${r.heartRate} bpm</div>
+                    <div style="margin-top:8px;">${r.teksKlas}</div>
+                </div>
+            `;
+        }
+        listContainer.innerHTML = html;
+    }
+
+    // Hapus semua riwayat
+    function hapusSemuaRiwayat() {
+        if (confirm("⚠️ HAPUS SEMUA RIWAYAT? Tekan OK untuk hapus.")) {
+            riwayat = [];
+            simpanRiwayatKeStorage();
+            tampilkanRiwayat();
+            // Reset tampilan hasil di halaman cek juga
+            document.getElementById("tampilNilai").innerHTML = "-- / -- mmHg";
+            document.getElementById("tampilStatus").innerHTML = "Belum dicek";
+            document.getElementById("tampilStatus").className = "status";
+            document.getElementById("tampilDetak").innerHTML = "❤️ Detak Jantung: -- bpm";
+        }
+    }
+
+    // Validasi & simpan
+    function handleSimpan() {
+        let sistolik = parseInt(document.getElementById("sistolik").value);
+        let diastolik = parseInt(document.getElementById("diastolik").value);
+        let heart = parseInt(document.getElementById("heartRate").value);
+        
+        if (isNaN(sistolik) || sistolik < 50 || sistolik > 250) {
+            alert("Masukkan Sistolik antara 50-250");
+            return;
+        }
+        if (isNaN(diastolik) || diastolik < 30 || diastolik > 150) {
+            alert("Masukkan Diastolik antara 30-150");
+            return;
+        }
+        if (isNaN(heart) || heart < 30 || heart > 180) {
+            alert("Masukkan Detak Jantung antara 30-180");
+            return;
+        }
+        
+        tambahData(sistolik, diastolik, heart);
+    }
+
+    // ========== NAVIGASI SEDERHANA ==========
+    function navigasiKePage(pageId) {
+        // Sembunyikan semua page
+        document.querySelectorAll('.page').forEach(page => {
+            page.classList.remove('active-page');
+        });
+        // Tampilkan page yang dipilih
+        document.getElementById(pageId + 'Page').classList.add('active-page');
+        
+        // Update aktif di navbar
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if(btn.getAttribute('data-page') === pageId) {
+                btn.classList.add('active');
+            }
+        });
+    }
+
+    // Event listener untuk navigasi
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const pageId = btn.getAttribute('data-page');
+            navigasiKePage(pageId);
+        });
+    });
+
+    // Event listener untuk tombol simpan & hapus
+    document.getElementById("simpanBtn").addEventListener("click", handleSimpan);
+    document.getElementById("hapusRiwayatBtn").addEventListener("click", hapusSemuaRiwayat);
+    
+    // Load data saat halaman dimuat
+    window.addEventListener("load", () => {
+        loadRiwayat();
+        
+        // Tampilkan hasil default 120/80 di halaman cek
+        let sistolDefault = 120;
+        let diastolDefault = 80;
+        let heartDefault = 75;
+        const klasAwal = klasifikasiTD(sistolDefault, diastolDefault);
+        document.getElementById("tampilNilai").innerHTML = `${sistolDefault} / ${diastolDefault} mmHg`;
+        document.getElementById("tampilStatus").innerHTML = teksStatus(klasAwal);
+        let statusClass = "status ";
+        if (klasAwal === "normal") statusClass += "status-normal";
+        else if (klasAwal === "tinggi") statusClass += "status-tinggi";
+        else statusClass += "status-rendah";
+        document.getElementById("tampilStatus").className = statusClass;
+        document.getElementById("tampilDetak").innerHTML = `❤️ Detak Jantung: ${heartDefault} bpm`;
+        
+        // Set input default
+        document.getElementById("sistolik").value = 120;
+        document.getElementById("diastolik").value = 80;
+        document.getElementById("heartRate").value = 75;
+    });
+</script>
+</body>
+</html>
